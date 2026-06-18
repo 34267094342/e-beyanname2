@@ -1,0 +1,12 @@
+{
+  "name": "34267094342-e-beyanname2",
+  "version": "1.0.0",
+  "description": "34267094342-e-beyanname2",
+  "repositoryLayout": {
+    "format": "json",
+    "formatVersion": "6",
+    "keepClient": "false",
+    "metaInformation": ".gctsmetadata/",
+    "tableContent": "true"
+  }
+}
