@@ -1,0 +1,1 @@
+CLASS zbp_tax_ddl_i_vat2_k2mt DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF ztax_ddl_i_vat2_k2mt.

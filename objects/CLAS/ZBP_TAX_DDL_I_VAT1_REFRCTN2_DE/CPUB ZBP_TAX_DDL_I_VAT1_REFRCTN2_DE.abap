@@ -1,0 +1,1 @@
+CLASS zbp_tax_ddl_i_vat1_refrctn2_de DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF ztax_ddl_i_vat1_refrctn2_def.

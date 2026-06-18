@@ -1,0 +1,1 @@
+CLASS zbp_tax_ddl_i_brf_work_place DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF ztax_ddl_i_brf_work_place.
