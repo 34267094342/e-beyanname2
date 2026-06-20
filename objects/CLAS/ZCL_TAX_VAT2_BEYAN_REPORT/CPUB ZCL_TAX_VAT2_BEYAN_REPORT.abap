@@ -3,7 +3,6 @@ CLASS zcl_tax_vat2_beyan_report DEFINITION
   FINAL
   CREATE PUBLIC .
 
-
   PUBLIC SECTION.
     INTERFACES if_rap_query_provider .
 
@@ -66,8 +65,6 @@ CLASS zcl_tax_vat2_beyan_report DEFINITION
     TYPES hkont TYPE hkont."bset-hkont.
     TYPES END OF mty_bset.
 
-
-
     TYPES BEGIN OF mty_bkpf.
     TYPES bukrs     TYPE i_journalentry-companycode.
     TYPES belnr     TYPE i_journalentry-accountingdocument.
@@ -85,7 +82,7 @@ CLASS zcl_tax_vat2_beyan_report DEFINITION
     TYPES kbetr TYPE ztax_e_kbetr."I_OperationalAcctgDocTaxItem-kbetr.
     TYPES kschl TYPE kschl."bset-kschl.
     TYPES END OF mty_bkpf.
-
+"TEST
 
     TYPES BEGIN OF mty_bkpf_rev_cont.
     TYPES bukrs TYPE i_journalentry-companycode.
