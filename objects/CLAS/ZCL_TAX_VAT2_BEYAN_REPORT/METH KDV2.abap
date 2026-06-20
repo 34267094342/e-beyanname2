@@ -422,24 +422,59 @@
 *eklendi Çağatay - Sümeyye
       " Hesaplama Tipi 2: oran = MWVS + NLXV  (tüm non-ZTRA kbetr'ler toplanır)
       " Hesaplama Tipi 3: tevkifato = (ZTRA / (MWVS+NLXV)) * 10
-      CLEAR:  lv_conv_int ,lv_zta.
-      LOOP AT lt_kschl_mwskz INTO DATA(ls_kschl_mwskz2) WHERE kiril1 = ls_k1k2-kiril1
-                                                          AND kiril2 = ls_k1k2-kiril2.
+*      CLEAR:  lv_conv_int ,lv_zta.
+*      LOOP AT lt_kschl_mwskz INTO DATA(ls_kschl_mwskz2) WHERE kiril1 = ls_k1k2-kiril1
+*                                                          AND kiril2 = ls_k1k2-kiril2.
+*        IF ls_kschl_mwskz2-kschl = 'ZTRA'.
+*          lv_zta = abs( ls_kschl_mwskz2-kbetr ).           " ZTRA oranı
+*        ELSE.
+*          lv_conv_int = lv_conv_int + abs( ls_kschl_mwskz2-kbetr ). " MWVS + NLXV toplamı
+*        ENDIF.
+*      ENDLOOP.
+*      " (ZTRA / (MWVS+NLXV)) * 10
+*      IF lv_conv_int > 0.
+*        lv_zta = ( lv_zta / lv_conv_int ) * 10.
+*      ELSE.
+*        CLEAR lv_zta.
+*      ENDIF.
+*      ls_collect-tevkifato = |{ lv_zta }/10|.
+*      ls_collect-oran = lv_conv_int.
+**eklendi-son
+
+
+"test
+      " Döngü içinde kullanılacak ondalıklı yeni değişken tanımlamaları
+      DATA: lv_conv_dec TYPE p LENGTH 16 DECIMALS 3,
+            lv_zta_dec  TYPE p LENGTH 16 DECIMALS 3,
+            lv_oran_num TYPE p LENGTH 16 DECIMALS 3.
+
+      CLEAR: lv_conv_dec, lv_zta_dec, lv_oran_num.
+
+      LOOP AT lt_kschl_mwskz INTO DATA(ls_kschl_mwskz2)
+           WHERE kiril1 = ls_k1k2-kiril1
+             AND kiril2 = ls_k1k2-kiril2
+             AND mwskz  = ls_k1k2-mwskz. " Eksik olan kritik filtre eklendi
+
+        DATA(lv_kbetr_num) = CONV decfloat34( ls_kschl_mwskz2-kbetr ).
+
         IF ls_kschl_mwskz2-kschl = 'ZTRA'.
-          lv_zta = abs( ls_kschl_mwskz2-kbetr ).           " ZTRA oranı
+          lv_zta_dec = abs( lv_kbetr_num ).
         ELSE.
-          lv_conv_int = lv_conv_int + abs( ls_kschl_mwskz2-kbetr ). " MWVS + NLXV toplamı
+          lv_conv_dec = lv_conv_dec + abs( lv_kbetr_num ).
         ENDIF.
       ENDLOOP.
-      " (ZTRA / (MWVS+NLXV)) * 10
-      IF lv_conv_int > 0.
-        lv_zta = ( lv_zta / lv_conv_int ) * 10.
+
+      IF lv_conv_dec > 0.
+        lv_oran_num = ( lv_zta_dec / lv_conv_dec ) * 10.
       ELSE.
-        CLEAR lv_zta.
+        CLEAR lv_oran_num.
       ENDIF.
-      ls_collect-tevkifato = |{ lv_zta }/10|.
-      ls_collect-oran = lv_conv_int.
-*eklendi-son
+
+      ls_collect-tevkifato = |{ lv_oran_num DECIMALS = 0 }/10|.
+      ls_collect-oran      = lv_conv_dec.
+
+"test
+
       COLLECT ls_collect INTO mt_collect.
 
       CLEAR ls_collect-kiril3.

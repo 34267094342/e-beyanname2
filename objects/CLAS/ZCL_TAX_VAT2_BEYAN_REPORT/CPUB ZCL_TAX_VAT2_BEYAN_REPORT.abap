@@ -82,7 +82,7 @@ CLASS zcl_tax_vat2_beyan_report DEFINITION
     TYPES kbetr TYPE ztax_e_kbetr."I_OperationalAcctgDocTaxItem-kbetr.
     TYPES kschl TYPE kschl."bset-kschl.
     TYPES END OF mty_bkpf.
-"TEST
+    "TEST
 
     TYPES BEGIN OF mty_bkpf_rev_cont.
     TYPES bukrs TYPE i_journalentry-companycode.
