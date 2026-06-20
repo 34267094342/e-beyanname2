@@ -471,7 +471,7 @@
       ENDIF.
 
       ls_collect-tevkifato = |{ lv_oran_num DECIMALS = 0 }/10|.
-      ls_collect-oran      = lv_conv_dec.
+      ls_collect-oran      = |{ lv_conv_dec DECIMALS = 0 }|.
 
 "test
 
