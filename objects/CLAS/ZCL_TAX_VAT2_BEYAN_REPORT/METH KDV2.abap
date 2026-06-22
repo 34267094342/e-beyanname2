@@ -442,7 +442,7 @@
 **eklendi-son
 
 
-"test
+      "test
       " Döngü içinde kullanılacak ondalıklı yeni değişken tanımlamaları
       DATA: lv_conv_dec TYPE p LENGTH 16 DECIMALS 3,
             lv_zta_dec  TYPE p LENGTH 16 DECIMALS 3,
@@ -473,7 +473,7 @@
       ls_collect-tevkifato = |{ lv_oran_num DECIMALS = 0 }/10|.
       ls_collect-oran      = |{ lv_conv_dec DECIMALS = 0 }|.
 
-"test
+      "test
 
       COLLECT ls_collect INTO mt_collect.
 

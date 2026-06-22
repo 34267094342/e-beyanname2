@@ -59,9 +59,15 @@
 
         LOOP AT mt_collect INTO DATA(ls_collect).
 
+          " Eğer matrah ve vergi tutarlarının ikisi de sıfırsa bu satırı atla
+          IF ls_collect-matrah IS INITIAL AND ls_collect-vergi IS INITIAL.
+            CONTINUE.
+          ENDIF.
+
           IF skip IS NOT INITIAL.
             CHECK sy-tabix > skip.
           ENDIF.
+
 
           APPEND INITIAL LINE TO lt_output ASSIGNING FIELD-SYMBOL(<fs_output>).
           MOVE-CORRESPONDING ls_collect TO <fs_output>.
@@ -77,14 +83,6 @@
         ENDLOOP.
 
         SORT lt_output BY kiril1 kiril2 kiril3.
-
-*        LOOP AT mt_kesinti INTO DATA(ls_lesinti) .
-*          MOVE-CORRESPONDING ls_lesinti TO ls_output.
-*          APPEND ls_output TO lt_output.
-*        ENDLOOP.
-
-
-
 
         IF io_request->is_total_numb_of_rec_requested(  ).
           io_response->set_total_number_of_records( iv_total_number_of_records = lines( mt_collect ) ).
