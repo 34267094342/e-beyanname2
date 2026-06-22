@@ -42,9 +42,6 @@
         p_donemb = 01."Sadece aylık kullanıldığı için
         p_beyant = 02.
 
-
-*        kdv2( ).
-
         CALL METHOD kdv2
           EXPORTING
             iv_bukrs   = p_bukrs
