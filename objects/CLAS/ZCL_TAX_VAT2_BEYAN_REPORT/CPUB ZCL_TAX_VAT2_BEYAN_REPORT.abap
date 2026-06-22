@@ -82,7 +82,6 @@ CLASS zcl_tax_vat2_beyan_report DEFINITION
     TYPES kbetr TYPE ztax_e_kbetr."I_OperationalAcctgDocTaxItem-kbetr.
     TYPES kschl TYPE kschl."bset-kschl.
     TYPES END OF mty_bkpf.
-    "TEST
 
     TYPES BEGIN OF mty_bkpf_rev_cont.
     TYPES bukrs TYPE i_journalentry-companycode.
@@ -93,7 +92,6 @@ CLASS zcl_tax_vat2_beyan_report DEFINITION
 
     TYPES mtty_bkpf TYPE SORTED TABLE OF mty_bkpf WITH UNIQUE KEY bukrs belnr gjahr.
     TYPES mtty_bset TYPE SORTED TABLE OF mty_bset WITH UNIQUE KEY bukrs belnr gjahr buzei.
-
 
     TYPES BEGIN OF mty_rbkp.
     TYPES belnr TYPE i_supplierinvoiceapi01-supplierinvoice.
@@ -125,10 +123,6 @@ CLASS zcl_tax_vat2_beyan_report DEFINITION
     TYPES kdv2 TYPE selkz_08.
     TYPES kes  TYPE selkz_08.
     TYPES END OF mty_button_pushed.
-
-
-
-*    TYPES mtty_bset TYPE SORTED TABLE OF mty_bset WITH UNIQUE KEY bukrs belnr gjahr buzei.
 
 
     TYPES BEGIN OF mty_bseg.
