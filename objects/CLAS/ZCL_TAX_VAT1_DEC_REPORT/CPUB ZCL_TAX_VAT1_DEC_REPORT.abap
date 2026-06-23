@@ -37,7 +37,6 @@ CLASS zcl_tax_vat1_dec_report DEFINITION
     TYPES gjahr_rev TYPE i_journalentry-fiscalyear.
     TYPES END OF mty_bkpf.
 
-*    TYPES mtty_bkpf TYPE SORTED TABLE OF mty_bkpf WITH UNIQUE KEY bukrs belnr gjahr.
     TYPES mtty_bkpf TYPE TABLE OF mty_bkpf.
 
     TYPES BEGIN OF mty_bset.
@@ -48,15 +47,14 @@ CLASS zcl_tax_vat1_dec_report DEFINITION
     TYPES mwskz TYPE mwskz.
     TYPES shkzg TYPE shkzg.
     TYPES hwbas TYPE p LENGTH 16 DECIMALS 2.
-    TYPES hwste TYPE p LENGTH 16 DECIMALS 2. "hwste.
+    TYPES hwste TYPE p LENGTH 16 DECIMALS 2.
     TYPES ktosl TYPE ktosl.
     TYPES kbetr TYPE int4.
     TYPES kschl TYPE kschl.
     TYPES blart TYPE blart.
     TYPES hkont TYPE hkont.
-
     TYPES END OF mty_bset.
-*    TYPES mtty_bset TYPE SORTED TABLE OF mty_bset WITH UNIQUE KEY bukrs belnr gjahr buzei.
+
     TYPES mtty_bset TYPE TABLE OF mty_bset .
 
     TYPES mtty_saknr_range TYPE RANGE OF saknr.
@@ -71,13 +69,12 @@ CLASS zcl_tax_vat1_dec_report DEFINITION
     TYPES topal  TYPE ztax_t_kdv1g-topal.
     TYPES topalk TYPE ztax_t_kdv1g-topalk.
     TYPES shkzg  TYPE ztax_t_kdv1g-shkzg.
-    TYPES islem_tur TYPE ztax_t_kdv1g-islem_tur. "YiğitcanÖzdemir
-    TYPES odeme_tur TYPE ztax_t_kdv1g-odeme_tur. "YiğitcanÖzdemir
+    TYPES islem_tur TYPE ztax_t_kdv1g-islem_tur.
+    TYPES odeme_tur TYPE ztax_t_kdv1g-odeme_tur.
     TYPES kural  TYPE ztax_t_k1k2s-kural.
     TYPES acklm1 TYPE ztax_t_k1k1-acklm.
     TYPES acklm2 TYPE ztax_t_k1k2-acklm.
     TYPES blart TYPE ztax_t_kdv1g-blart.
-
     TYPES END OF mty_map.
 
     TYPES mtty_map TYPE TABLE OF mty_map.
@@ -120,10 +117,11 @@ CLASS zcl_tax_vat1_dec_report DEFINITION
     TYPES buzid  TYPE c LENGTH 1 .
     TYPES mwskz  TYPE mwskz .
     TYPES hkont  TYPE hkont .
-    TYPES xref3 TYPE  c LENGTH 20.
+    TYPES xref3 TYPE c LENGTH 20.
+    TYPES assignmentreference TYPE i_journalentryitem-assignmentreference.
+    TYPES buzei TYPE i_operationalacctgdocitem-accountingdocumentitem.
     TYPES END OF mty_bseg.
 
-*    TYPES mtty_bseg TYPE SORTED TABLE OF mty_bseg WITH UNIQUE KEY bukrs belnr gjahr koart .
     TYPES mtty_bseg TYPE TABLE OF mty_bseg.
 
     TYPES BEGIN OF mty_bkpf_rev_cont.
@@ -171,7 +169,6 @@ CLASS zcl_tax_vat1_dec_report DEFINITION
     TYPES END OF mty_gib.
     TYPES mtty_gib   TYPE TABLE OF mty_gib.
 
-
     TYPES BEGIN OF mty_button_pushed.
     TYPES kdv1 TYPE selkz_08.
     TYPES tevk TYPE selkz_08.
@@ -187,10 +184,8 @@ CLASS zcl_tax_vat1_dec_report DEFINITION
     CONSTANTS mc_kschl_character TYPE string VALUE 'QWERTYUIOPĞÜASDFGHJKLŞİZXCVBNMÖÇ'.
     CONSTANTS mc_new_line_belnr    TYPE belnr_d VALUE '**********'.
 
-    DATA mt_collect                TYPE TABLE OF ztax_ddl_i_vat1_dec_report."mty_collect.
-
+    DATA mt_collect TYPE TABLE OF ztax_ddl_i_vat1_dec_report.
     TYPES mtty_collect TYPE TABLE OF ztax_ddl_i_vat1_dec_report..
-
     TYPES mtty_monat_range TYPE RANGE OF monat.
 
     METHODS:
@@ -224,4 +219,3 @@ CLASS zcl_tax_vat1_dec_report DEFINITION
                                       is_bset  TYPE mty_bset
                                       it_bkpf  TYPE mtty_bkpf
                                       it_bseg  TYPE mtty_bseg.
-    .

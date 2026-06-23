@@ -26,20 +26,14 @@
               lt_gjahr_range = CORRESPONDING #( ls_filter-range ).
             WHEN 'MONAT'.
               lt_monat_range = CORRESPONDING #( ls_filter-range ).
-*            WHEN 'DONEMB'.
-*              lt_monat_range = CORRESPONDING #( ls_filter-range ).
           ENDCASE.
         ENDLOOP.
 
         p_bukrs  = VALUE #( lt_bukrs_range[ 1 ]-low OPTIONAL ).
         p_gjahr  = VALUE #( lt_gjahr_range[ 1 ]-low OPTIONAL ).
         p_monat  = VALUE #( lt_monat_range[ 1 ]-low OPTIONAL ).
-*        p_donemb = VALUE #( lt_donemb_range[ 1 ]-low OPTIONAL ).
-        p_donemb = 01."Sadece aylık kullanıldığı için
+        p_donemb = 01.
         p_beyant = 02.
-
-
-*        kdv1( ).
 
         CALL METHOD kdv1
           EXPORTING
@@ -51,7 +45,6 @@
           IMPORTING
             et_collect = mt_collect
             er_monat   = mr_monat.
-
 
         SORT mt_collect BY kiril1 kiril2 kiril3.
         LOOP AT mt_collect INTO DATA(ls_collect).
@@ -71,7 +64,7 @@
           ENDIF.
         ENDLOOP.
 
-        IF io_request->is_total_numb_of_rec_requested(  ).
+        IF io_request->is_total_numb_of_rec_requested( ).
           io_response->set_total_number_of_records( iv_total_number_of_records = lines( mt_collect ) ).
         ENDIF.
         io_response->set_data( it_data = lt_output ).

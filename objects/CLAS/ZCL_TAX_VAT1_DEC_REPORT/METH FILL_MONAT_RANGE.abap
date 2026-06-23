@@ -28,7 +28,6 @@
         ENDIF.
         mv_monat = p_monat.
       WHEN '02'.
-
         DO 3 TIMES.
           lv_monat = lv_monat + 1.
           IF sy-index EQ 1.
