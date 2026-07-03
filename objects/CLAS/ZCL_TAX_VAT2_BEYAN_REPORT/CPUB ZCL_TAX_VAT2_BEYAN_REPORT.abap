@@ -1,3 +1,4 @@
+
 CLASS zcl_tax_vat2_beyan_report DEFINITION
   PUBLIC
   FINAL
