@@ -665,6 +665,69 @@
                 ENDIF.
                 "Hesapçıoğlu için hariç tutuldu.
 
+                "--- kırılım kontrolü: aynı mwskz birden fazla kiril2'ye map'liyse
+                "    belge satırı (BSEG-T) metin/atama alanına göre 1:1 pozisyonel eşleme yapılır.
+                "    B1 vb. kodların iki kere gelmesini önlemek için IF dalıyla aynı kontrol burada da uygulanır.
+                CLEAR lv_ita_found.
+                IF lv_ita IS NOT INITIAL.
+
+                  CLEAR lt_bset_doc.
+                  LOOP AT lt_bset INTO DATA(ls_bset_doc2) WHERE bukrs = ls_bset-bukrs
+                                                           AND belnr = ls_bset-belnr
+                                                           AND gjahr = ls_bset-gjahr
+                                                           AND mwskz = ls_map-mwskz.
+                    CLEAR ls_bset_pos.
+                    ls_bset_pos-buzei = ls_bset_doc2-buzei.
+                    APPEND ls_bset_pos TO lt_bset_doc.
+                  ENDLOOP.
+                  SORT lt_bset_doc BY buzei.
+
+                  CLEAR lt_bseg_doc.
+                  LOOP AT lt_bseg_ita INTO ls_bseg WHERE bukrs = ls_bset-bukrs
+                                                AND belnr = ls_bset-belnr
+                                                AND gjahr = ls_bset-gjahr
+                                                AND buzid = 'T'
+                                                AND mwskz = ls_map-mwskz.
+                    CLEAR ls_bseg_doc.
+                    ls_bseg_doc-buzei               = ls_bseg-buzei.
+                    ls_bseg_doc-assignmentreference = ls_bseg-assignmentreference.
+                    APPEND ls_bseg_doc TO lt_bseg_doc.
+                  ENDLOOP.
+                  SORT lt_bseg_doc BY buzei.
+
+                  CLEAR lv_pos.
+                  LOOP AT lt_bset_doc INTO ls_bset_pos.
+                    IF ls_bset_pos-buzei = ls_bset-buzei.
+                      lv_pos = sy-tabix.
+                      EXIT.
+                    ENDIF.
+                  ENDLOOP.
+
+                  IF lv_pos > 0 AND lv_pos <= lines( lt_bseg_doc ).
+                    READ TABLE lt_bseg_doc INTO ls_bseg_doc INDEX lv_pos.
+                    IF sy-subrc = 0.
+                      ASSIGN COMPONENT lv_ita OF STRUCTURE ls_bseg_doc TO <fs_ita_value>.
+                      IF <fs_ita_value> IS ASSIGNED AND <fs_ita_value> EQ ls_map-kiril2.
+                        lv_ita_found = abap_true.
+                      ENDIF.
+                      UNASSIGN <fs_ita_value>.
+                    ENDIF.
+                  ENDIF.
+
+                  IF lv_ita_found = abap_false AND lines( lt_bseg_doc ) = 1.
+                    READ TABLE lt_bseg_doc INTO ls_bseg_doc INDEX 1.
+                    ASSIGN COMPONENT lv_ita OF STRUCTURE ls_bseg_doc TO <fs_ita_value>.
+                    IF <fs_ita_value> IS ASSIGNED AND <fs_ita_value> EQ ls_map-kiril2.
+                      lv_ita_found = abap_true.
+                    ENDIF.
+                    UNASSIGN <fs_ita_value>.
+                  ENDIF.
+
+                  CHECK lv_ita_found = abap_true.
+
+                ENDIF.
+                "--- /kırılım kontrolü ---
+
 
                 "-----------------------------------------------------------------------
                 " DÜZELTME: 391... hesabındaki ZA belgesi HWBAS tutarı
