@@ -9,7 +9,6 @@ CLASS zcl_tax_vat1_dec_report DEFINITION
 
     DATA mr_monat TYPE RANGE OF monat.
     DATA mv_monat TYPE monat.
-
     DATA p_monat TYPE monat.
     DATA p_gjahr TYPE gjahr.
     DATA p_bukrs TYPE bukrs.
