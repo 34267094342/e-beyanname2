@@ -112,6 +112,7 @@
 
     DATA lv_pos          TYPE i.
     DATA lv_ita_found     TYPE abap_boolean.
+    DATA lv_ita_eff       TYPE ztax_t_tevit-fieldname.
     FIELD-SYMBOLS <fs_ita_value> TYPE any.
     "--- /kırılım ---
 
@@ -471,8 +472,21 @@
 
               "--- kırılım kontrolü: aynı mwskz birden fazla kiril2'ye map'liyse
               "    belge satırı (BSEG-T) metin/atama alanına göre 1:1 pozisyonel eşleme yapılır.
+              "    Kullanılacak alan adı (lv_ita) ztax_t_tevit uyarlamasından DİNAMİK olarak gelir;
+              "    kod içinde sabit (hardcoded) bir alan adı KULLANILMAZ.
               CLEAR lv_ita_found.
-              IF lv_ita IS NOT INITIAL.
+
+              CLEAR lv_map_count.
+              LOOP AT lt_map INTO ls_map_check
+                WHERE kiril1 EQ ls_map-kiril1
+                  AND mwskz  EQ ls_map-mwskz.
+                ADD 1 TO lv_map_count.
+              ENDLOOP.
+
+              IF lv_map_count > 1.
+
+                " ztax_t_tevit'ten (uyarlama) gelen dinamik alan adı kullanılır.
+                lv_ita_eff = lv_ita.
 
                 CLEAR lt_bset_doc.
                 LOOP AT lt_bset INTO DATA(ls_bset_doc) WHERE bukrs = ls_bset-bukrs
@@ -509,7 +523,7 @@
                 IF lv_pos > 0 AND lv_pos <= lines( lt_bseg_doc ).
                   READ TABLE lt_bseg_doc INTO ls_bseg_doc INDEX lv_pos.
                   IF sy-subrc = 0.
-                    ASSIGN COMPONENT lv_ita OF STRUCTURE ls_bseg_doc TO <fs_ita_value>.
+                    ASSIGN COMPONENT lv_ita_eff OF STRUCTURE ls_bseg_doc TO <fs_ita_value>.
                     IF <fs_ita_value> IS ASSIGNED AND <fs_ita_value> EQ ls_map-kiril2.
                       lv_ita_found = abap_true.
                     ENDIF.
@@ -519,7 +533,7 @@
 
                 IF lv_ita_found = abap_false AND lines( lt_bseg_doc ) = 1.
                   READ TABLE lt_bseg_doc INTO ls_bseg_doc INDEX 1.
-                  ASSIGN COMPONENT lv_ita OF STRUCTURE ls_bseg_doc TO <fs_ita_value>.
+                  ASSIGN COMPONENT lv_ita_eff OF STRUCTURE ls_bseg_doc TO <fs_ita_value>.
                   IF <fs_ita_value> IS ASSIGNED AND <fs_ita_value> EQ ls_map-kiril2.
                     lv_ita_found = abap_true.
                   ENDIF.
@@ -528,30 +542,6 @@
 
                 CHECK lv_ita_found = abap_true.
 
-              ENDIF.
-
-              " Aynı mwskz birden fazla kiril2'ye map'liyse VE lv_ita boşsa,
-              " tekrar gelmesini önlemek için lt_map'te bu mwskz + kiril1 kombinasyonunun
-              " kaç ayrı kiril2 kaydı olduğunu say.
-              IF lv_ita IS INITIAL.
-                CLEAR lv_map_count.
-                LOOP AT lt_map INTO ls_map_check
-                  WHERE kiril1 EQ ls_map-kiril1
-                    AND mwskz  EQ ls_map-mwskz.
-                  ADD 1 TO lv_map_count.
-                ENDLOOP.
-
-                " Birden fazla kiril2 map'i varsa bu bset satırını sadece
-                " ilk eşleşen kiril2 için topla (tekrar engelleme)
-                IF lv_map_count > 1.
-                  " lt_map içinde bu mwskz'in ilk kiril2'si mi kontrol et
-                  READ TABLE lt_map INTO ls_map_check
-                    WITH KEY kiril1 = ls_map-kiril1
-                             mwskz  = ls_map-mwskz.
-                  IF ls_map_check-kiril2 NE ls_map-kiril2.
-                    CONTINUE. " Bu kiril2 ilk değil, atla
-                  ENDIF.
-                ENDIF.
               ENDIF.
               "--- /kırılım kontrolü ---
 
@@ -693,9 +683,21 @@
 
                 "--- kırılım kontrolü: aynı mwskz birden fazla kiril2'ye map'liyse
                 "    belge satırı (BSEG-T) metin/atama alanına göre 1:1 pozisyonel eşleme yapılır.
-                "    B1 vb. kodların iki kere gelmesini önlemek için IF dalıyla aynı kontrol burada da uygulanır.
+                "    Kullanılacak alan adı (lv_ita) ztax_t_tevit uyarlamasından DİNAMİK olarak gelir;
+                "    kod içinde sabit (hardcoded) bir alan adı KULLANILMAZ.
                 CLEAR lv_ita_found.
-                IF lv_ita IS NOT INITIAL.
+
+                CLEAR lv_map_count.
+                LOOP AT lt_map INTO ls_map_check
+                  WHERE kiril1 EQ ls_map-kiril1
+                    AND mwskz  EQ ls_map-mwskz.
+                  ADD 1 TO lv_map_count.
+                ENDLOOP.
+
+                IF lv_map_count > 1.
+
+                  " ztax_t_tevit'ten (uyarlama) gelen dinamik alan adı kullanılır.
+                  lv_ita_eff = lv_ita.
 
                   CLEAR lt_bset_doc.
                   LOOP AT lt_bset INTO DATA(ls_bset_doc2) WHERE bukrs = ls_bset-bukrs
@@ -732,7 +734,7 @@
                   IF lv_pos > 0 AND lv_pos <= lines( lt_bseg_doc ).
                     READ TABLE lt_bseg_doc INTO ls_bseg_doc INDEX lv_pos.
                     IF sy-subrc = 0.
-                      ASSIGN COMPONENT lv_ita OF STRUCTURE ls_bseg_doc TO <fs_ita_value>.
+                      ASSIGN COMPONENT lv_ita_eff OF STRUCTURE ls_bseg_doc TO <fs_ita_value>.
                       IF <fs_ita_value> IS ASSIGNED AND <fs_ita_value> EQ ls_map-kiril2.
                         lv_ita_found = abap_true.
                       ENDIF.
@@ -742,7 +744,7 @@
 
                   IF lv_ita_found = abap_false AND lines( lt_bseg_doc ) = 1.
                     READ TABLE lt_bseg_doc INTO ls_bseg_doc INDEX 1.
-                    ASSIGN COMPONENT lv_ita OF STRUCTURE ls_bseg_doc TO <fs_ita_value>.
+                    ASSIGN COMPONENT lv_ita_eff OF STRUCTURE ls_bseg_doc TO <fs_ita_value>.
                     IF <fs_ita_value> IS ASSIGNED AND <fs_ita_value> EQ ls_map-kiril2.
                       lv_ita_found = abap_true.
                     ENDIF.
@@ -751,30 +753,6 @@
 
                   CHECK lv_ita_found = abap_true.
 
-                ENDIF.
-
-                " Aynı mwskz birden fazla kiril2'ye map'liyse VE lv_ita boşsa,
-                " tekrar gelmesini önlemek için lt_map'te bu mwskz + kiril1 kombinasyonunun
-                " kaç ayrı kiril2 kaydı olduğunu say.
-                IF lv_ita IS INITIAL.
-                  CLEAR lv_map_count.
-                  LOOP AT lt_map INTO ls_map_check
-                    WHERE kiril1 EQ ls_map-kiril1
-                      AND mwskz  EQ ls_map-mwskz.
-                    ADD 1 TO lv_map_count.
-                  ENDLOOP.
-
-                  " Birden fazla kiril2 map'i varsa bu bset satırını sadece
-                  " ilk eşleşen kiril2 için topla (tekrar engelleme)
-                  IF lv_map_count > 1.
-                    " lt_map içinde bu mwskz'in ilk kiril2'si mi kontrol et
-                    READ TABLE lt_map INTO ls_map_check
-                      WITH KEY kiril1 = ls_map-kiril1
-                               mwskz  = ls_map-mwskz.
-                    IF ls_map_check-kiril2 NE ls_map-kiril2.
-                      CONTINUE. " Bu kiril2 ilk değil, atla
-                    ENDIF.
-                  ENDIF.
                 ENDIF.
                 "--- /kırılım kontrolü ---
 
