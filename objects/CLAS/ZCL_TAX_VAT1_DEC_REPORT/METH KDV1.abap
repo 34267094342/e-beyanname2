@@ -96,6 +96,8 @@
     "--- kırılım (breakdown) belirleme: belge satırı metin/atama alanı okuma ---
     DATA lv_ita TYPE ztax_t_tevit-fieldname.
     DATA lt_bseg_ita TYPE mtty_bseg.
+    DATA lv_map_count  TYPE i.
+    DATA ls_map_check  TYPE mty_map.
 
     DATA: BEGIN OF ls_bseg_doc,
             buzei               TYPE c LENGTH 6,
@@ -527,6 +529,30 @@
                 CHECK lv_ita_found = abap_true.
 
               ENDIF.
+
+              " Aynı mwskz birden fazla kiril2'ye map'liyse VE lv_ita boşsa,
+              " tekrar gelmesini önlemek için lt_map'te bu mwskz + kiril1 kombinasyonunun
+              " kaç ayrı kiril2 kaydı olduğunu say.
+              IF lv_ita IS INITIAL.
+                CLEAR lv_map_count.
+                LOOP AT lt_map INTO ls_map_check
+                  WHERE kiril1 EQ ls_map-kiril1
+                    AND mwskz  EQ ls_map-mwskz.
+                  ADD 1 TO lv_map_count.
+                ENDLOOP.
+
+                " Birden fazla kiril2 map'i varsa bu bset satırını sadece
+                " ilk eşleşen kiril2 için topla (tekrar engelleme)
+                IF lv_map_count > 1.
+                  " lt_map içinde bu mwskz'in ilk kiril2'si mi kontrol et
+                  READ TABLE lt_map INTO ls_map_check
+                    WITH KEY kiril1 = ls_map-kiril1
+                             mwskz  = ls_map-mwskz.
+                  IF ls_map_check-kiril2 NE ls_map-kiril2.
+                    CONTINUE. " Bu kiril2 ilk değil, atla
+                  ENDIF.
+                ENDIF.
+              ENDIF.
               "--- /kırılım kontrolü ---
 
               "1
@@ -725,6 +751,30 @@
 
                   CHECK lv_ita_found = abap_true.
 
+                ENDIF.
+
+                " Aynı mwskz birden fazla kiril2'ye map'liyse VE lv_ita boşsa,
+                " tekrar gelmesini önlemek için lt_map'te bu mwskz + kiril1 kombinasyonunun
+                " kaç ayrı kiril2 kaydı olduğunu say.
+                IF lv_ita IS INITIAL.
+                  CLEAR lv_map_count.
+                  LOOP AT lt_map INTO ls_map_check
+                    WHERE kiril1 EQ ls_map-kiril1
+                      AND mwskz  EQ ls_map-mwskz.
+                    ADD 1 TO lv_map_count.
+                  ENDLOOP.
+
+                  " Birden fazla kiril2 map'i varsa bu bset satırını sadece
+                  " ilk eşleşen kiril2 için topla (tekrar engelleme)
+                  IF lv_map_count > 1.
+                    " lt_map içinde bu mwskz'in ilk kiril2'si mi kontrol et
+                    READ TABLE lt_map INTO ls_map_check
+                      WITH KEY kiril1 = ls_map-kiril1
+                               mwskz  = ls_map-mwskz.
+                    IF ls_map_check-kiril2 NE ls_map-kiril2.
+                      CONTINUE. " Bu kiril2 ilk değil, atla
+                    ENDIF.
+                  ENDIF.
                 ENDIF.
                 "--- /kırılım kontrolü ---
 
