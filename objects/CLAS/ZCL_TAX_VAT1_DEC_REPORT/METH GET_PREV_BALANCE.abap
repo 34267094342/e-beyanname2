@@ -16,10 +16,10 @@
     ENDIF.
 
     SELECT SUM( wrbtr )
-           FROM ztax_t_thlog
-           WHERE bukrs EQ @p_bukrs
-             AND gjahr EQ @p_gjahr
-             AND monat LT @lv_monat
-            INTO @ev_balance.
+      FROM ztax_t_thlog
+      WHERE bukrs EQ @p_bukrs
+        AND gjahr EQ @p_gjahr
+        AND monat LT @lv_monat
+      INTO @ev_balance.
 
   ENDMETHOD.
