@@ -178,7 +178,7 @@ CLASS zcl_tax_vat1_dec_report DEFINITION
     DATA mt_gib      TYPE mtty_gib.
     CONSTANTS mc_kschl_character TYPE string VALUE 'QWERTYUIOPĞÜASDFGHJKLŞİZXCVBNMÖÇ'.
     CONSTANTS mc_new_line_belnr    TYPE belnr_d VALUE '**********'.
-    CONSTANTS mc_kural_tevkifat    TYPE ztax_t_k1k2s-kural VALUE '005'.
+    CONSTANTS mc_kural_tevkifat    TYPE ztax_t_k1k2s-kural VALUE '003'.
     DATA mt_collect                TYPE TABLE OF ztax_ddl_i_vat1_dec_report.
 
     TYPES mtty_collect TYPE TABLE OF ztax_ddl_i_vat1_dec_report.

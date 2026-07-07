@@ -30,16 +30,20 @@
     FIELD-SYMBOLS <fs_collect> TYPE ztax_ddl_i_vat1_dec_report.
 
     "--- kırılım (breakdown) belirleme: belge satırı metin/atama alanı okuma ---
-    "    Bu mantık YALNIZCA tevkifatlı (kural = mc_kural_tevkifat / '005') satırlar
-    "    için çalışır. Okunacak alan adı (lv_ita) ztax_t_tevit uyarlamasından
+    "    Bu mantık YALNIZCA tevkifatlı satırlar için çalışır (kural = mc_kural_tevkifat / '003',
+    "    bkz. ZTAX_T_KDV1G: "Kısmi Tevkifat Uygulanan İşlem Türü" / "Sorumlu Sıfatıyla Beyan
+    "    Edilen KDV"). Bu kuralda aynı vergi kodu (mwskz, örn. B4/B5/B6) birden fazla KIRIL2
+    "    işlem türüne map edilebildiğinden, hangi KIRIL2'ye ait olduğu belge satırının
+    "    metin/atama alanından okunur. Okunacak alan adı (lv_ita) ztax_t_tevit uyarlamasından
     "    DİNAMİK olarak gelir; kod içinde sabit (hardcoded) bir alan adı KULLANILMAZ.
-    "    Belge satırının metin/atama alanında bir değer varsa, bu satırın tevkifat
-    "    tutarı manuel olarak (ZTAX_T_K1MT üzerinden) yönetildiği kabul edilir ve
-    "    BSET'ten gelen otomatik tevkifat tutarı hesaplamaya DAHİL EDİLMEZ
-    "    (çift sayımı önlemek için ilgili BSET satırı atlanır).
+    "    - Metin alanında bir değer VARSA ve mevcut ls_map-kiril2 ile EŞLEŞMİYORSA, bu BSET
+    "      satırı bu kırılıma ait değildir ve atlanır (başka bir map satırında eşleşecektir);
+    "      bu sayede aynı tutar birden fazla KIRIL2'ye dahil edilerek çift sayılmaz.
+    "    - Metin alanında değer YOKSA (belirsizlik olmayan tekil eşleşmeli vergi kodları,
+    "      örn. B2/B3), satır eskisi gibi normal şekilde toplanır.
     DATA lv_ita TYPE ztax_t_tevit-fieldname.
     DATA lt_bseg_ita TYPE mtty_bseg.
-    DATA lv_ita_manual TYPE abap_boolean.
+    DATA lv_ita_skip TYPE abap_boolean.
     FIELD-SYMBOLS <fs_ita_value> TYPE any.
     "--- /kırılım ---
 
@@ -275,8 +279,8 @@
                 CONTINUE.
               ENDIF.
 
-              "--- tevkifat kırılım kontrolü (sadece kural = 005) ---
-              CLEAR lv_ita_manual.
+              "--- tevkifat kırılım kontrolü (sadece kural = 003) ---
+              CLEAR lv_ita_skip.
               IF ls_map-kural EQ mc_kural_tevkifat AND lv_ita IS NOT INITIAL.
                 READ TABLE lt_bseg_ita INTO ls_bseg
                   WITH KEY bukrs = ls_bset-bukrs
@@ -287,18 +291,19 @@
                   BINARY SEARCH.
                 IF sy-subrc = 0.
                   ASSIGN COMPONENT lv_ita OF STRUCTURE ls_bseg TO <fs_ita_value>.
-                  IF <fs_ita_value> IS ASSIGNED AND <fs_ita_value> IS NOT INITIAL.
-                    "Belge satırı metninde kırılım bilgisi var: bu tevkifat tutarı
-                    "manuel olarak (ZTAX_T_K1MT) yönetiliyor, otomatik BSET tutarı
-                    "çift sayıma yol açmaması için hesaplamaya dahil edilmez.
-                    lv_ita_manual = abap_true.
+                  IF <fs_ita_value> IS ASSIGNED AND <fs_ita_value> IS NOT INITIAL
+                                                AND <fs_ita_value> NE ls_map-kiril2.
+                    "Belge satırı metninde farklı bir kırılım (KIRIL2) belirtilmiş:
+                    "bu satır bu map kaydına ait değil, ilgili diğer map satırında
+                    "toplanacaktır - burada dahil edilmez (çift sayım engellenir).
+                    lv_ita_skip = abap_true.
                   ENDIF.
                   UNASSIGN <fs_ita_value>.
                 ENDIF.
               ENDIF.
               "--- /tevkifat kırılım kontrolü ---
 
-              CHECK lv_ita_manual EQ abap_false.
+              CHECK lv_ita_skip EQ abap_false.
 
               "1
               CLEAR ls_collect.
@@ -402,8 +407,8 @@
                   CONTINUE.
                 ENDIF.
 
-                "--- tevkifat kırılım kontrolü (sadece kural = 005) ---
-                CLEAR lv_ita_manual.
+                "--- tevkifat kırılım kontrolü (sadece kural = 003) ---
+                CLEAR lv_ita_skip.
                 IF ls_map-kural EQ mc_kural_tevkifat AND lv_ita IS NOT INITIAL.
                   READ TABLE lt_bseg_ita INTO ls_bseg
                     WITH KEY bukrs = ls_bset-bukrs
@@ -414,15 +419,16 @@
                     BINARY SEARCH.
                   IF sy-subrc = 0.
                     ASSIGN COMPONENT lv_ita OF STRUCTURE ls_bseg TO <fs_ita_value>.
-                    IF <fs_ita_value> IS ASSIGNED AND <fs_ita_value> IS NOT INITIAL.
-                      lv_ita_manual = abap_true.
+                    IF <fs_ita_value> IS ASSIGNED AND <fs_ita_value> IS NOT INITIAL
+                                                  AND <fs_ita_value> NE ls_map-kiril2.
+                      lv_ita_skip = abap_true.
                     ENDIF.
                     UNASSIGN <fs_ita_value>.
                   ENDIF.
                 ENDIF.
                 "--- /tevkifat kırılım kontrolü ---
 
-                CHECK lv_ita_manual EQ abap_false.
+                CHECK lv_ita_skip EQ abap_false.
 
                 "-----------------------------------------------------------------------
                 " DÜZELTME: 391... hesabındaki ZA belgesi HWBAS tutarı
