@@ -8,23 +8,20 @@
                                  AND saknr NE space.
       APPEND INITIAL LINE TO er_saknr ASSIGNING <fs_range>.
       IF <fs_range> IS ASSIGNED.
-        IF <fs_range> IS ASSIGNED.
-          ASSIGN COMPONENT 'SIGN' OF STRUCTURE <fs_range> TO <fs_field>.
-          IF <fs_field> IS ASSIGNED.
-            <fs_field> = 'I'.
-            UNASSIGN <fs_field>.
-          ENDIF.
-          ASSIGN COMPONENT 'OPTION' OF STRUCTURE <fs_range> TO <fs_field>.
-          IF <fs_field> IS ASSIGNED.
-            <fs_field> = 'EQ'.
-            UNASSIGN <fs_field>.
-          ENDIF.
-          ASSIGN COMPONENT 'LOW' OF STRUCTURE <fs_range> TO <fs_field>.
-          IF <fs_field> IS ASSIGNED.
-            <fs_field> = ls_map-saknr.
-            UNASSIGN <fs_field>.
-          ENDIF.
-          UNASSIGN <fs_range>.
+        ASSIGN COMPONENT 'SIGN' OF STRUCTURE <fs_range> TO <fs_field>.
+        IF <fs_field> IS ASSIGNED.
+          <fs_field> = 'I'.
+          UNASSIGN <fs_field>.
+        ENDIF.
+        ASSIGN COMPONENT 'OPTION' OF STRUCTURE <fs_range> TO <fs_field>.
+        IF <fs_field> IS ASSIGNED.
+          <fs_field> = 'EQ'.
+          UNASSIGN <fs_field>.
+        ENDIF.
+        ASSIGN COMPONENT 'LOW' OF STRUCTURE <fs_range> TO <fs_field>.
+        IF <fs_field> IS ASSIGNED.
+          <fs_field> = ls_map-saknr.
+          UNASSIGN <fs_field>.
         ENDIF.
         UNASSIGN <fs_range>.
       ENDIF.

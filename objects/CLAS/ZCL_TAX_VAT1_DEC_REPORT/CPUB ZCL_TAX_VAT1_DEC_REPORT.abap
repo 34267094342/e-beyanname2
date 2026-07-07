@@ -35,7 +35,6 @@ CLASS zcl_tax_vat1_dec_report DEFINITION
     TYPES gjahr_rev TYPE i_journalentry-fiscalyear.
     TYPES END OF mty_bkpf.
 
-* TYPES mtty_bkpf TYPE SORTED TABLE OF mty_bkpf WITH UNIQUE KEY bukrs belnr gjahr.
     TYPES mtty_bkpf TYPE TABLE OF mty_bkpf.
 
     TYPES BEGIN OF mty_bset.
@@ -52,9 +51,8 @@ CLASS zcl_tax_vat1_dec_report DEFINITION
     TYPES kschl TYPE kschl.
     TYPES blart TYPE blart.
     TYPES hkont TYPE hkont.
-
     TYPES END OF mty_bset.
-* TYPES mtty_bset TYPE SORTED TABLE OF mty_bset WITH UNIQUE KEY bukrs belnr gjahr buzei.
+
     TYPES mtty_bset TYPE TABLE OF mty_bset .
 
     TYPES mtty_saknr_range TYPE RANGE OF saknr.
@@ -70,14 +68,12 @@ CLASS zcl_tax_vat1_dec_report DEFINITION
     TYPES topal  TYPE ztax_t_kdv1g-topal.
     TYPES topalk TYPE ztax_t_kdv1g-topalk.
     TYPES shkzg  TYPE ztax_t_kdv1g-shkzg.
-    TYPES islem_tur TYPE ztax_t_kdv1g-islem_tur. "YiğitcanÖzdemir
+    TYPES islem_tur TYPE ztax_t_kdv1g-islem_tur.
     TYPES odeme_tur TYPE ztax_t_kdv1g-odeme_tur.
-    "YiğitcanÖzdemir
     TYPES kural  TYPE ztax_t_k1k2s-kural.
     TYPES acklm1 TYPE ztax_t_k1k1-acklm.
     TYPES acklm2 TYPE ztax_t_k1k2-acklm.
     TYPES blart TYPE ztax_t_kdv1g-blart.
-
     TYPES END OF mty_map.
 
     TYPES mtty_map TYPE TABLE OF mty_map.
@@ -87,8 +83,7 @@ CLASS zcl_tax_vat1_dec_report DEFINITION
     TYPES gjahr    TYPE ztax_t_k1mt-gjahr.
     TYPES monat    TYPE ztax_t_k1mt-monat.
     TYPES kiril1   TYPE ztax_t_k1mt-kiril1.
-    TYPES kiril2   TYPE
-ztax_t_k1mt-kiril2.
+    TYPES kiril2   TYPE ztax_t_k1mt-kiril2.
     TYPES mwskz    TYPE ztax_t_k1mt-mwskz.
     TYPES kschl    TYPE ztax_t_k1mt-kschl.
     TYPES hkont    TYPE ztax_t_k1mt-hkont.
@@ -101,7 +96,6 @@ ztax_t_k1mt-kiril2.
     TYPES END OF lty_k1mt.
 
     TYPES BEGIN OF lty_topal.
-
     TYPES split TYPE c LENGTH 10.
     TYPES END OF lty_topal.
 
@@ -126,7 +120,6 @@ ztax_t_k1mt-kiril2.
     TYPES buzei TYPE i_operationalacctgdocitem-accountingdocumentitem.
     TYPES END OF mty_bseg.
 
-* TYPES mtty_bseg TYPE SORTED TABLE OF mty_bseg WITH UNIQUE KEY bukrs belnr gjahr koart .
     TYPES mtty_bseg TYPE TABLE OF mty_bseg.
 
     TYPES BEGIN OF mty_bkpf_rev_cont.
@@ -173,7 +166,6 @@ ztax_t_k1mt-kiril2.
     TYPES END OF mty_gib.
     TYPES mtty_gib   TYPE TABLE OF mty_gib.
 
-
     TYPES BEGIN OF mty_button_pushed.
     TYPES kdv1 TYPE selkz_08.
     TYPES tevk TYPE selkz_08.
@@ -186,9 +178,10 @@ ztax_t_k1mt-kiril2.
     DATA mt_gib      TYPE mtty_gib.
     CONSTANTS mc_kschl_character TYPE string VALUE 'QWERTYUIOPĞÜASDFGHJKLŞİZXCVBNMÖÇ'.
     CONSTANTS mc_new_line_belnr    TYPE belnr_d VALUE '**********'.
-    DATA mt_collect                TYPE TABLE OF ztax_ddl_i_vat1_dec_report."mty_collect.
+    CONSTANTS mc_kural_tevkifat    TYPE ztax_t_k1k2s-kural VALUE '005'.
+    DATA mt_collect                TYPE TABLE OF ztax_ddl_i_vat1_dec_report.
 
-    TYPES mtty_collect TYPE TABLE OF ztax_ddl_i_vat1_dec_report..
+    TYPES mtty_collect TYPE TABLE OF ztax_ddl_i_vat1_dec_report.
 
     TYPES mtty_monat_range TYPE RANGE OF monat.
 
@@ -197,12 +190,10 @@ ztax_t_k1mt-kiril2.
       fill_det_kural_range,
       kdv1 IMPORTING iv_bukrs   TYPE bukrs OPTIONAL
                      iv_gjahr   TYPE gjahr OPTIONAL
-
                      iv_monat   TYPE monat OPTIONAL
                      iv_donemb  TYPE ztax_e_donemb OPTIONAL
                      iv_beyant  TYPE ztax_e_beyant OPTIONAL
            EXPORTING et_collect TYPE mtty_collect
-
                      er_monat   TYPE mtty_monat_range ,
       get_condition_type EXPORTING et_kostr TYPE mtty_kostr,
       get_map_tab EXPORTING et_map TYPE mtty_map ,
@@ -210,24 +201,19 @@ ztax_t_k1mt-kiril2.
                        EXPORTING er_saknr TYPE mtty_saknr_range,
       get_prev_balance EXPORTING ev_balance TYPE ztax_t_thlog-wrbtr,
       find_document IMPORTING is_read_tab TYPE mty_read_tab
-
                               ir_saknr    TYPE mtty_saknr_range OPTIONAL
                               ir_mwskz    TYPE mtty_mwskz_range OPTIONAL
                     EXPORTING et_bkpf     TYPE mtty_bkpf
-
                               et_bset     TYPE mtty_bset
                               et_bseg     TYPE mtty_bseg,
       get_fieldname EXPORTING et_tevita TYPE mtty_tevita,
       get_gib EXPORTING et_gib TYPE mtty_gib,
       calculate_sum_balance IMPORTING is_map   TYPE mty_map
-
                                       iv_bukrs TYPE bukrs
                                       iv_gjahr TYPE gjahr
-
                                       iv_monat TYPE monat
                                       iv_butxt TYPE i_companycode-companycodename
                                       is_bset  TYPE mty_bset
-
                                       it_bkpf  TYPE mtty_bkpf
                                       it_bseg  TYPE mtty_bseg.
     .
