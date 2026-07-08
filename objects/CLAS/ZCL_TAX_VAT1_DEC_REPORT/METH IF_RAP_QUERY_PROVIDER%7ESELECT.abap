@@ -4,11 +4,11 @@
 
     TRY.
         DATA(lt_filter) = io_request->get_filter( )->get_as_ranges( ).
-        DATA: lt_bukrs_range  TYPE RANGE OF bukrs,
-              lt_gjahr_range  TYPE RANGE OF gjahr,
-              lt_monat_range  TYPE RANGE OF monat,
-              lt_output       TYPE TABLE OF ztax_ddl_i_vat1_dec_report,
-              ls_output       TYPE ztax_ddl_i_vat1_dec_report.
+        DATA: lt_bukrs_range TYPE RANGE OF bukrs,
+              lt_gjahr_range TYPE RANGE OF gjahr,
+              lt_monat_range TYPE RANGE OF monat,
+              lt_output      TYPE TABLE OF ztax_ddl_i_vat1_dec_report,
+              ls_output      TYPE ztax_ddl_i_vat1_dec_report.
 
         DATA(lo_paging) = io_request->get_paging( ).
         DATA(top)       = lo_paging->get_page_size( ).
@@ -36,11 +36,11 @@
 
         CALL METHOD kdv1
           EXPORTING
-            iv_bukrs  = p_bukrs
-            iv_gjahr  = p_gjahr
-            iv_monat  = p_monat
-            iv_donemb = p_donemb
-            iv_beyant = p_beyant
+            iv_bukrs   = p_bukrs
+            iv_gjahr   = p_gjahr
+            iv_monat   = p_monat
+            iv_donemb  = p_donemb
+            iv_beyant  = p_beyant
           IMPORTING
             et_collect = mt_collect
             er_monat   = mr_monat.
