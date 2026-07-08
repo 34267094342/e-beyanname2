@@ -24,12 +24,26 @@
           INTO TABLE @et_bkpf.
 
     IF is_read_tab-bset EQ abap_true.
+      "-----------------------------------------------------------------------
+      " DÜZELTME: Artık belge/vergi kodu bazında (taxcode) TOPLANMIYOR.
+      " SORUN   : Eski SELECT, aynı belgede aynı vergi koduna (mwskz) sahip
+      "           farklı kalemleri (BUZEI) tek satırda topluyordu. Bu da
+      "           tevkifat kırılımının (kural=003) kalem bazında ayrılan
+      "           ASSIGNMENTREFERENCE bilgisine göre doğru dağıtılmasını
+      "           imkansız kılıyordu (kalemler zaten birleşmiş geliyordu).
+      " ÇÖZÜM   : SELECT artık kalem (accountingdocumentitem/BUZEI) ve
+      "           ASSIGNMENTREFERENCE bazında GROUP BY yapılıyor, böylece her
+      "           fiziksel muhasebe kalemi kendi satırında ve kendi
+      "           ASSIGNMENTREFERENCE'ı ile geliyor.
+      "-----------------------------------------------------------------------
       SELECT
         j~companycode AS bukrs,
         j~accountingdocument AS belnr,
         j~fiscalyear AS gjahr,
+        j~accountingdocumentitem AS buzei,
         j~taxcode AS mwskz, r~conditionrateratio AS kbetr, r~vatconditiontype AS kschl,
         j~accountingdocumenttype AS blart, j~glaccount AS hkont,
+        j~assignmentreference AS assignmentreference,
         SUM( CASE WHEN ( j~transactiontypedetermination = 'VST' OR j~transactiontypedetermination = 'MWS' )
              THEN j~amountincompanycodecurrency ELSE 0 END ) AS hwste,
         SUM( CASE WHEN ( j~transactiontypedetermination <> 'VST' AND
@@ -47,13 +61,13 @@
           AND j~fiscalperiod = @p_monat
           AND ( j~financialaccounttype = 'S' OR j~financialaccounttype = 'A' )
           AND j~taxcode <> ''
-        GROUP BY j~companycode, j~accountingdocument, j~fiscalyear, j~taxcode, r~conditionrateratio, r~vatconditiontype, j~accountingdocumenttype, j~glaccount
+        GROUP BY j~companycode, j~accountingdocument, j~fiscalyear, j~accountingdocumentitem,
+                 j~taxcode, r~conditionrateratio, r~vatconditiontype, j~accountingdocumenttype,
+                 j~glaccount, j~assignmentreference
         ORDER BY j~companycode, j~accountingdocument, j~fiscalyear, j~taxcode
         INTO CORRESPONDING FIELDS OF TABLE @et_bset.
     ENDIF.
 
     "NOTE: et_bseg (koart/lifnr/xref3 breakdown) is currently not populated here.
-    "      The dedicated ITA (breakdown) lookup used for withholding tax detection
-    "      is performed separately in KDV1 against I_OPERATIONALACCTGDOCITEM.
 
   ENDMETHOD.

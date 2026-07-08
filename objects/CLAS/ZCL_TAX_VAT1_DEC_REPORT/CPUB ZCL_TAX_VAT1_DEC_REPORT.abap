@@ -51,6 +51,7 @@ CLASS zcl_tax_vat1_dec_report DEFINITION
     TYPES kschl TYPE kschl.
     TYPES blart TYPE blart.
     TYPES hkont TYPE hkont.
+    TYPES assignmentreference TYPE i_journalentryitem-assignmentreference.
     TYPES END OF mty_bset.
 
     TYPES mtty_bset TYPE TABLE OF mty_bset .
