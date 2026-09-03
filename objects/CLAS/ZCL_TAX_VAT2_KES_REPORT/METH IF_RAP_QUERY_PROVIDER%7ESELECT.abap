@@ -69,19 +69,12 @@
 
 
         CALL METHOD get_data
-
           EXPORTING
-
             iv_bukrs  = p_bukrs
-
             iv_gjahr  = p_gjahr
-
             iv_monat  = p_monat
-
             iv_donemb = p_donemb
-
           IMPORTING
-
             et_result = lt_output.
 
 

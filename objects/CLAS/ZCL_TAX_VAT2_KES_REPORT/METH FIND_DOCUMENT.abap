@@ -311,9 +311,6 @@
           AND taxratio~cndnrecordvalidityenddate = '99991231'
 
 
-
-
-
                     LEFT JOIN i_operationalacctgdocitem AS docitem ON
 
            docitem~CompanyCode        = bset~companycode AND
@@ -347,73 +344,22 @@
 
 
     IF is_read_tab-bseg EQ abap_true.
-
-      IF lines( et_bset ) GT 0.
-
+      IF lines( et_bkpf ) GT 0.
         SELECT i_journalentryitem~companycode AS bukrs,
-
                i_journalentryitem~accountingdocument AS belnr,
-
                i_journalentryitem~fiscalyear AS gjahr,
-
                i_journalentryitem~financialaccounttype AS koart,
-
                i_journalentryitem~supplier AS lifnr,
-
 *               i_journalentryitem~AccountingDocumentItemType as buzid,
-
                i_journalentryitem~taxcode AS mwskz
 
-
-
                FROM i_journalentryitem
-
-
-
                INNER JOIN @et_bkpf AS bkpf
-
-               ON i_journalentryitem~companycode EQ bkpf~bukrs
-
-                 AND i_journalentryitem~accountingdocument EQ bkpf~belnr
-
-                 AND i_journalentryitem~fiscalyear EQ bkpf~gjahr
-
-
-
-                 INTO CORRESPONDING FIELDS OF TABLE @et_bseg.
-
-      ELSEIF lines( et_bkpf ) GT 0.
-
-        SELECT i_journalentryitem~companycode AS bukrs,
-
-               i_journalentryitem~accountingdocument AS belnr,
-
-               i_journalentryitem~fiscalyear AS gjahr,
-
-               i_journalentryitem~financialaccounttype AS koart,
-
-               i_journalentryitem~supplier AS lifnr,
-
-**               i_journalentryitem~AccountingDocumentItemType as buzid,
-
-               i_journalentryitem~taxcode AS mwskz
-
-
-
-               FROM i_journalentryitem
-
-               INNER JOIN @et_bkpf AS bkpf
-
                ON  i_journalentryitem~companycode EQ bkpf~bukrs
-
                  AND i_journalentryitem~accountingdocument EQ bkpf~belnr
-
                  AND i_journalentryitem~fiscalyear EQ bkpf~gjahr
-
                    INTO CORRESPONDING FIELDS OF TABLE @et_bseg.
-
       ENDIF.
-
     ENDIF.
 
 
