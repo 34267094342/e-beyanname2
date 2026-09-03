@@ -358,7 +358,9 @@
                ON  i_journalentryitem~companycode EQ bkpf~bukrs
                  AND i_journalentryitem~accountingdocument EQ bkpf~belnr
                  AND i_journalentryitem~fiscalyear EQ bkpf~gjahr
-                   INTO CORRESPONDING FIELDS OF TABLE @et_bseg.
+               WHERE i_journalentryitem~financialaccounttype EQ 'K'
+                  OR i_journalentryitem~taxcode NE @space
+                   INTO CORRESPONDING FIELDS of TABLE @et_bseg.
       ENDIF.
     ENDIF.
 
