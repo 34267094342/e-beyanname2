@@ -324,6 +324,13 @@
     "TYPE":"C",
     "LENGTH":1,
     "DECIMALS":-1
+   },
+   {
+    "NAME":"IS_DEFAULT_LADI",
+    "KEY":"",
+    "TYPE":"C",
+    "LENGTH":1,
+    "DECIMALS":-1
    }
   ],
   "properties":

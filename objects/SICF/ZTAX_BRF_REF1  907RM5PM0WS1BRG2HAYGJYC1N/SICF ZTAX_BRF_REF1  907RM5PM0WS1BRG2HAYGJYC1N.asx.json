@@ -94,7 +94,12 @@
     "NO_SESSION_MANAGEMENT":"",
     "ORIG_NAME":"ztax_brf_ref1",
     "ICFALTNME":"",
-    "ICFALTNME_ORIG":""
+    "ICFALTNME_ORIG":"",
+    "HDROTR403":"",
+    "BODOTR403":"",
+    "URL403":"",
+    "KIND403":"",
+    "HTTPCDE403":""
    }
   ]
  },

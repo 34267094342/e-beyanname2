@@ -233,6 +233,37 @@
         WHERE bset~taxcode IN @lr_mwskz
         INTO TABLE @et_bset.
 
+        " AssignmentReference (kismi tevkifat islem turu kodu) BSET satirinda yok;
+        " gercek kaynagi I_JournalEntryItem -- ayni belge/vergi kodu icin bu alani
+        " ayrica okuyup et_bset satirlarina esliyoruz (get_data bunu lv_ita ile
+        " dinamik okuyup bos olan satirlari elemede kullaniyor).
+        IF lines( et_bset ) GT 0.
+          DATA lt_zuonr TYPE SORTED TABLE OF mty_bset WITH NON-UNIQUE KEY bukrs belnr gjahr mwskz.
+          SELECT j~companycode          AS bukrs,
+                 j~accountingdocument   AS belnr,
+                 j~fiscalyear           AS gjahr,
+                 j~taxcode              AS mwskz,
+                 j~assignmentreference  AS assignmentreference
+            FROM i_journalentryitem AS j
+            FOR ALL ENTRIES IN @et_bset
+            WHERE j~companycode        = @et_bset-bukrs
+              AND j~accountingdocument = @et_bset-belnr
+              AND j~fiscalyear         = @et_bset-gjahr
+              AND j~taxcode            = @et_bset-mwskz
+              AND j~assignmentreference <> ''
+            INTO CORRESPONDING FIELDS OF TABLE @lt_zuonr.
+
+          LOOP AT et_bset ASSIGNING FIELD-SYMBOL(<fs_bset_zuonr>).
+            READ TABLE lt_zuonr INTO DATA(ls_zuonr) WITH KEY bukrs = <fs_bset_zuonr>-bukrs
+                                                              belnr = <fs_bset_zuonr>-belnr
+                                                              gjahr = <fs_bset_zuonr>-gjahr
+                                                              mwskz = <fs_bset_zuonr>-mwskz.
+            IF sy-subrc EQ 0.
+              <fs_bset_zuonr>-assignmentreference = ls_zuonr-assignmentreference.
+            ENDIF.
+          ENDLOOP.
+        ENDIF.
+
 
 
 

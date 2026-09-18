@@ -75,6 +75,7 @@ CLASS zcl_tax_vat1_tev_report DEFINITION
     TYPES kschl TYPE kschl.
     TYPES hkont TYPE hkont.
     TYPES ktosl TYPE ktosl.
+    TYPES assignmentreference TYPE i_journalentryitem-assignmentreference.
     TYPES END OF mty_bset.
     TYPES mtty_bset TYPE  TABLE OF mty_bset. "WITH UNIQUE KEY bukrs belnr gjahr buzei.
 

@@ -324,6 +324,8 @@
 
         j~taxcode AS mwskz,
 
+        j~accountingdocumenttype AS blart,
+
         r~conditionrateratio AS kbetr,
 
         SUM( CASE WHEN ( j~transactiontypedetermination = 'VST' OR
@@ -368,7 +370,7 @@
 
         AND j~isreversed = ''
 
-      GROUP BY j~glaccount, j~taxcode, r~conditionrateratio
+      GROUP BY j~glaccount, j~taxcode, r~conditionrateratio, j~accountingdocumenttype
 
       INTO TABLE @DATA(lt_ozel).
 
@@ -838,7 +840,9 @@
 
           LOOP AT lt_ozel INTO DATA(ls_ozel) WHERE hkont = ls_map-saknr
 
-                                               AND mwskz = ls_map-mwskz.
+                                               AND mwskz = ls_map-mwskz
+
+                                               AND blart = ls_map-blart.
 
             CLEAR ls_collect.
 
@@ -1293,6 +1297,8 @@
               AND ( j~financialaccounttype = 'S'
 
                  OR j~financialaccounttype = 'A' )
+
+              AND j~transactiontypedetermination = 'VST'
 
             GROUP BY j~glaccount, j~taxcode, j~accountingdocumenttype
 

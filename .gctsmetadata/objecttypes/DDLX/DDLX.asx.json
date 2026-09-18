@@ -43,7 +43,7 @@
     "METHODNAME":"SDDIC_DDLX_RT_AIM",
     "UPGRADE":"X",
     "MULTI_OBJ":"X",
-    "LANG_OBJ":"",
+    "LANG_OBJ":"X",
     "SHADOW_SYS":""
    }
   ]

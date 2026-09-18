@@ -135,6 +135,13 @@
     "TYPE":"P",
     "LENGTH":8,
     "DECIMALS":0
+   },
+   {
+    "NAME":"RTYPE_MIG_STATUS",
+    "KEY":"",
+    "TYPE":"C",
+    "LENGTH":1,
+    "DECIMALS":-1
    }
   ],
   "properties":

@@ -3,6 +3,11 @@
 
     FIELD-SYMBOLS <fs_value>     TYPE any.
     FIELD-SYMBOLS <fs_value_dyn> TYPE any.
+    FIELD-SYMBOLS <fs_ita_value> TYPE any.
+
+    DATA lv_ita      TYPE ztax_t_tevit-fieldname.
+    DATA lv_ita_skip TYPE abap_boolean.
+    DATA ls_tevita_single TYPE mty_tevita.
 
 
     IF iv_bukrs IS NOT INITIAL.
@@ -28,6 +33,12 @@
                     IMPORTING er_mwskz = lr_mwskz ).
 
     me->get_fieldname( IMPORTING et_tevita = mt_tevita ).
+
+    CLEAR lv_ita.
+    READ TABLE mt_tevita INTO ls_tevita_single INDEX 1.
+    IF sy-subrc EQ 0.
+      lv_ita = ls_tevita_single-fieldname.
+    ENDIF.
 
 *        ASSIGN lo_data->* TO <fs_out_tev>.
 *        CREATE DATA lo_data_line LIKE LINE OF <fs_out_tev>.
@@ -138,6 +149,13 @@
         WHERE bukrs EQ @p_bukrs
           AND mwskz EQ @ls_belnr-mwskz
           INTO @ls_tax_voran.
+
+      " ztax_t_voran'da bu belge/mwskz icin tevkifat orani tanimli degilse
+      " (tevkifatOrani bos, vergi=0.00 uretilip yine de eke eklenen fazla satir hatasi)
+      " bu belgeyi ek listeye almadan atla.
+      IF ls_tax_voran-tevkifat IS INITIAL.
+        CONTINUE.
+      ENDIF.
 
       CLEAR ls_tevkifat.
 *          CLEAR <fs_line>.
@@ -327,6 +345,8 @@
 *        ENDCASE.
 *      ENDLOOP.
 
+      CLEAR lv_ita_skip.
+
       LOOP AT lt_bset INTO ls_bset
            WHERE belnr EQ ls_belnr-belnr
              AND bukrs EQ ls_belnr-bukrs
@@ -335,6 +355,22 @@
         CASE ls_bset-shkzg.
 
           WHEN 'H'. "Toplam KDV satırı
+
+            "--- gercek kismi tevkifat kontrolu ---
+            "Bu BSET satirinin ASSIGNMENTREFERENCE alani (lv_ita, ztax_t_tevit'ten
+            "dinamik gelir) BOS ise, bu belge vergi kodu eslesse de gercek bir
+            "kismi tevkifat islemi degildir (orn. TK/reversal disi ama alakasiz
+            "kayit) -- ek listeye dahil edilmemeli.
+            CLEAR lv_ita_skip.
+            IF lv_ita IS NOT INITIAL.
+              ASSIGN COMPONENT lv_ita OF STRUCTURE ls_bset TO <fs_ita_value>.
+              IF <fs_ita_value> IS ASSIGNED AND <fs_ita_value> IS NOT INITIAL.
+                lv_ita_skip = abap_false.
+              ELSE.
+                lv_ita_skip = abap_true.
+              ENDIF.
+              UNASSIGN <fs_ita_value>.
+            ENDIF.
 
             "MATRAH
             ASSIGN COMPONENT 'MATRAH' OF STRUCTURE <fs_line> TO <fs_value>.
@@ -367,6 +403,7 @@
 
       ENDLOOP.
 
+      CHECK lv_ita_skip EQ abap_false.
 
       ASSIGN COMPONENT 'KBETR' OF STRUCTURE <fs_line> TO <fs_value>.
       IF <fs_value> IS ASSIGNED.
