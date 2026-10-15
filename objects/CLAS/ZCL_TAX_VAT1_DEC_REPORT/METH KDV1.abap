@@ -838,11 +838,23 @@
 
         WHEN '010'.
 
+          " BLART customizing'de doluysa filtre uygulanir, bossa tum belge turleri dahil edilir
+
+          DATA lr_blart_010 TYPE RANGE OF ztax_t_kdv1g-blart.
+
+          CLEAR lr_blart_010.
+
+          IF ls_map-blart IS NOT INITIAL.
+
+            lr_blart_010 = VALUE #( ( sign = 'I' option = 'EQ' low = ls_map-blart ) ).
+
+          ENDIF.
+
           LOOP AT lt_ozel INTO DATA(ls_ozel) WHERE hkont = ls_map-saknr
 
                                                AND mwskz = ls_map-mwskz
 
-                                               AND blart = ls_map-blart.
+                                               AND blart IN lr_blart_010.
 
             CLEAR ls_collect.
 
