@@ -122,6 +122,25 @@
             FROM ztax_t_k2ita
             INTO @lv_ita.
 
+    "İşlem türü belirleme: Beyanname ve Kesinti raporu aynı kuralı kullanır
+    DATA lo_islem_tur  TYPE REF TO zcl_tax_vat2_islem_tur.
+    DATA lv_islem_tur  TYPE zcl_tax_vat2_islem_tur=>ty_islem_tur.
+    DATA lv_islem_src  TYPE zcl_tax_vat2_islem_tur=>ty_source.
+    DATA: BEGIN OF ls_unres_key,
+            bukrs TYPE bukrs,
+            belnr TYPE belnr_d,
+            gjahr TYPE gjahr,
+            buzei TYPE n LENGTH 6,
+          END OF ls_unres_key.
+    DATA lt_unres_done LIKE HASHED TABLE OF ls_unres_key WITH UNIQUE KEY bukrs belnr gjahr buzei.
+
+    IF lv_ita IS NOT INITIAL.
+      lo_islem_tur = zcl_tax_vat2_islem_tur=>create_from_db( iv_fieldname = lv_ita
+                                                             iv_bukrs     = p_bukrs
+                                                             iv_gjahr     = p_gjahr
+                                                             ir_monat     = mr_monat ).
+    ENDIF.
+
     SELECT k2type,
            mwskz
            FROM ztax_t_k2ist
@@ -201,84 +220,44 @@
           ls_kschl_mwskz-xmlsr  = ls_map-xmlsr.
 
           IF lv_ita IS NOT INITIAL.
-            " --- YENİ MANTIK: 1:1 pozisyonel eşleştirme ---
-            " Aynı belge (bukrs/belnr/gjahr) + aynı mwskz grubu içindeki
-            " BSET satırlarını buzei'ye göre sıralı bir liste yapıyoruz,
-            " aynı şekilde BSEG-T satırlarını da buzei'ye göre sıralı
-            " bir liste yapıyoruz. ls_bset şu an kaçıncı sıradaysa,
-            " BSEG-T listesindeki AYNI sıradaki satırın
-            " AssignmentReference'ına bakıyoruz. Böylece aynı belgede
-            " birden fazla kiril2 (örn. 207/212/213 ya da 214/227)
-            " bulunsa bile her BSET satırı SADECE KENDİ karşılığı olan
-            " kiril2'ye yazılır; çapraz-bucket duplikasyon oluşmaz.
-
+            " İşlem türü ortak kuralla belirlenir (ZCL_TAX_VAT2_ISLEM_TUR):
+            " vergi kalemi -> gider kalemi -> vergi kodunun tek işlem türü.
+            " Hiçbiri yoksa satır düşürülmez; '000' kırılımında
+            " "İşlem türü belirlenemedi" olarak raporda gösterilir
+            " (XML'e yazılmaz, kullanıcı belgeyi düzeltir).
             DATA(lv_ita_found) = abap_false.
 
-            IF lv_bseg_subrc IS INITIAL.
+            lo_islem_tur->determine( EXPORTING iv_bukrs     = ls_bset-bukrs
+                                               iv_belnr     = ls_bset-belnr
+                                               iv_gjahr     = ls_bset-gjahr
+                                               iv_mwskz     = ls_bset-mwskz
+                                               iv_taxitem   = ls_bset-buzei
+                                     IMPORTING ev_islem_tur = lv_islem_tur
+                                               ev_source    = lv_islem_src ).
 
-              " --- bu belge + bu mwskz için BSET satırlarını topla ---
-              CLEAR lt_bset_doc.
-              LOOP AT lt_bset INTO DATA(ls_bset_doc) WHERE bukrs = ls_bset-bukrs
-                                                       AND belnr = ls_bset-belnr
-                                                       AND gjahr = ls_bset-gjahr
-                                                       AND mwskz = ls_map-mwskz.
-                CLEAR ls_bset_pos.
-                ls_bset_pos-buzei = ls_bset_doc-buzei.
-                APPEND ls_bset_pos TO lt_bset_doc.
-              ENDLOOP.
-              SORT lt_bset_doc BY buzei.
-
-              " --- bu belge + bu mwskz için BSEG-T satırlarını topla ---
-              CLEAR lt_bseg_doc.
-              LOOP AT lt_bseg INTO ls_bseg FROM lv_bseg_tabix.
-                " Belge anahtarı veya vergi kodu değişti: aramayı durdur
-                IF ls_bseg-bukrs NE ls_bset-bukrs OR
-                   ls_bseg-belnr NE ls_bset-belnr OR
-                   ls_bseg-gjahr NE ls_bset-gjahr OR
-                   ls_bseg-buzid NE 'T'            OR
-                   ls_bseg-mwskz NE ls_map-mwskz.
-                  EXIT.
-                ENDIF.
-                CLEAR ls_bseg_doc.
-                ls_bseg_doc-buzei               = ls_bseg-buzei.
-                ls_bseg_doc-assignmentreference = ls_bseg-assignmentreference.
-                APPEND ls_bseg_doc TO lt_bseg_doc.
-              ENDLOOP.
-              SORT lt_bseg_doc BY buzei.
-
-              " --- ls_bset'in lt_bset_doc içindeki pozisyonunu bul ---
-              CLEAR lv_pos.
-              lv_bset_buzei_c = ls_bset-buzei.
-              LOOP AT lt_bset_doc INTO ls_bset_pos.
-                IF ls_bset_pos-buzei = ls_bset-buzei.
-                  lv_pos = sy-tabix.
-                  EXIT.
-                ENDIF.
-              ENDLOOP.
-
-              " --- aynı pozisyondaki BSEG-T satırının AssignmentReference'ı kiril2'ye eşit mi? ---
-              IF lv_pos > 0 AND lv_pos <= lines( lt_bseg_doc ).
-                READ TABLE lt_bseg_doc INTO ls_bseg_doc INDEX lv_pos.
-                IF sy-subrc = 0.
-                  ASSIGN COMPONENT lv_ita OF STRUCTURE ls_bseg_doc TO <fs_value>.
-                  IF <fs_value> IS ASSIGNED AND <fs_value> EQ ls_map-kiril2.
-                    lv_ita_found = abap_true.
-                  ENDIF.
-                  UNASSIGN <fs_value>.
-                ENDIF.
+            IF lv_islem_src EQ zcl_tax_vat2_islem_tur=>c_source_unresolved.
+              CLEAR ls_unres_key.
+              ls_unres_key-bukrs = ls_bset-bukrs.
+              ls_unres_key-belnr = ls_bset-belnr.
+              ls_unres_key-gjahr = ls_bset-gjahr.
+              ls_unres_key-buzei = ls_bset-buzei.
+              READ TABLE lt_unres_done TRANSPORTING NO FIELDS WITH TABLE KEY bukrs = ls_unres_key-bukrs
+                                                                             belnr = ls_unres_key-belnr
+                                                                             gjahr = ls_unres_key-gjahr
+                                                                             buzei = ls_unres_key-buzei.
+              IF sy-subrc IS NOT INITIAL.
+                INSERT ls_unres_key INTO TABLE lt_unres_done.
+                ls_kschl_mwskz-kiril1 = '000'.
+                ls_kschl_mwskz-acklm1 = 'İşlem türü belirlenemedi (XML dışı)'.
+                ls_kschl_mwskz-kiril2 = '000'.
+                ls_kschl_mwskz-acklm2 = 'İşlem türü belirlenemedi (XML dışı)'.
+                CLEAR ls_kschl_mwskz-xmlsr.
+                COLLECT ls_kschl_mwskz INTO lt_kschl_mwskz.
               ENDIF.
-
-              " --- Fallback: sadece TEK bir BSEG-T satırı varsa (tek kalemli belge,
-              "     örn. 224 senaryosu), pozisyon hesaplamasına gerek yok ---
-              IF lv_ita_found = abap_false AND lines( lt_bseg_doc ) = 1.
-                READ TABLE lt_bseg_doc INTO ls_bseg_doc INDEX 1.
-                ASSIGN COMPONENT lv_ita OF STRUCTURE ls_bseg_doc TO <fs_value>.
-                IF <fs_value> IS ASSIGNED AND <fs_value> EQ ls_map-kiril2.
-                  lv_ita_found = abap_true.
-                ENDIF.
-                UNASSIGN <fs_value>.
-              ENDIF.
-
+              CLEAR ls_kschl_mwskz.
+            ELSEIF lv_islem_src NE zcl_tax_vat2_islem_tur=>c_source_not_relevant
+               AND lv_islem_tur EQ ls_map-kiril2.
+              lv_ita_found = abap_true.
             ENDIF.
 
             IF lv_ita_found = abap_true.

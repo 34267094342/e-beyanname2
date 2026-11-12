@@ -123,6 +123,11 @@ CLASS lhc_ztax_ddl_i_vat2_beyan_repo IMPLEMENTATION.
                tevkt      TYPE  ztax_e_tevkifat,
                tevkt_oran TYPE  ztax_ddl_i_vat2_beyan_report-tevkifato,
                odmtr      TYPE ztax_e_odeme_turu,
+               "Belge anahtarı: XML'e yazılmaz, yalnızca satırların belge bazında
+               "ayrı kalmasını sağlar (aynı satıcının belgeleri tek satırda toplanmaz).
+               belnr      TYPE belnr_d,
+               gjahr      TYPE gjahr,
+               buzei      TYPE ztax_ddl_i_vat2_kes_report-buzei,
 
 *             kiril2 TYPE  /itetr/tax_s_kesinti-kiril2,
              END OF ty_kesinti_lifnr_sum.
@@ -194,6 +199,7 @@ CLASS lhc_ztax_ddl_i_vat2_beyan_repo IMPLEMENTATION.
       DATA lv_islemtur      TYPE string.
       DATA lv_oran          TYPE string.
       DATA lv_tevkf_oran    TYPE string.
+      DATA lv_odeme_turu    TYPE string.
       DATA lv_filename      TYPE string.
 *      DATA lt_x             TYPE mtty_x.
       DATA lv_size          TYPE i.
@@ -649,7 +655,7 @@ CLASS lhc_ztax_ddl_i_vat2_beyan_repo IMPLEMENTATION.
                 '<kesintiler>'
                 INTO lv_xml_string
                 SEPARATED BY space.
-      SORT lt_kesinti_lifnr_sum ASCENDING BY mcod1.
+      SORT lt_kesinti_lifnr_sum ASCENDING BY mcod1 belnr buzei.
       LOOP AT lt_kesinti_lifnr_sum INTO ls_lifnr_sum_kesinti.
 
         CONCATENATE lv_xml_string
@@ -694,8 +700,26 @@ CLASS lhc_ztax_ddl_i_vat2_beyan_repo IMPLEMENTATION.
         CLEAR ms_collect.
         READ TABLE mt_collect INTO ms_collect WITH KEY kiril2 = ls_lifnr_sum_kesinti-islem_tur
                                                        kiril3 = ls_lifnr_sum_kesinti-mwskz.
+        IF sy-subrc IS NOT INITIAL OR ms_collect-oran IS INITIAL.
+          "KDV ve tevkifat oranı vergi koduna bağlıdır: işlem türü eşleşmediyse
+          "aynı vergi kodunun beyanname raporundaki başka bir satırından alınır.
+          LOOP AT mt_collect INTO DATA(ls_collect_mwskz) WHERE kiril3 EQ ls_lifnr_sum_kesinti-mwskz
+                                                           AND oran   IS NOT INITIAL.
+            ms_collect = ls_collect_mwskz.
+            EXIT.
+          ENDLOOP.
+        ENDIF.
         lv_oran       = ms_collect-oran.
         lv_tevkf_oran = ms_collect-tevkifato.
+
+        "Ödeme türü rapordan gelir (101 yurt dışı / 102 KDV Genel Uygulama);
+        "belirtilmemişse (ör. eski manuel kayıt) 102 kabul edilir.
+        IF ls_lifnr_sum_kesinti-odmtr IS INITIAL.
+          lv_odeme_turu = '102'.
+        ELSE.
+          lv_odeme_turu = ls_lifnr_sum_kesinti-odmtr.
+        ENDIF.
+        CONDENSE lv_odeme_turu NO-GAPS.
 
         CONDENSE lv_oran NO-GAPS.
         CONDENSE lv_tevkf_oran NO-GAPS.
@@ -708,10 +732,10 @@ CLASS lhc_ztax_ddl_i_vat2_beyan_repo IMPLEMENTATION.
                     lv_kesinti_vergino
                     lv_islemtur
                     '<vergiyeTabiMatrah>' lv_char_matrah '</vergiyeTabiMatrah>'
-                    '<oran>20</oran>'
+                    '<oran>' lv_oran '</oran>'
                     '<tevkifatOrani>' lv_tevkf_oran '</tevkifatOrani>'
                     '<tutar>' lv_char_tevkifat '</tutar>'
-                    '<odemeTuru>102</odemeTuru>'
+                    '<odemeTuru>' lv_odeme_turu '</odemeTuru>'
                     INTO lv_xml_string.
 
         CONCATENATE lv_xml_string

@@ -46,11 +46,11 @@
 
 
 
-    TYPES odmtr TYPE c LENGTH 1."/itetr/tax_k2odt-odmtr.
+    TYPES odmtr TYPE ztax_t_k2odt-odmtr.
 
 
 
-    TYPES acklm TYPE c LENGTH 1.
+    TYPES acklm TYPE ztax_t_k2odt-acklm.
 
 
 
@@ -772,6 +772,18 @@
 
            INTO @lv_ita.
 
+    "İşlem türü belirleme: Beyanname raporu ile aynı kural
+    DATA lo_islem_tur  TYPE REF TO zcl_tax_vat2_islem_tur.
+    DATA lv_islem_tur  TYPE zcl_tax_vat2_islem_tur=>ty_islem_tur.
+    DATA lv_islem_src  TYPE zcl_tax_vat2_islem_tur=>ty_source.
+
+    IF lv_ita IS NOT INITIAL.
+      lo_islem_tur = zcl_tax_vat2_islem_tur=>create_from_db( iv_fieldname = lv_ita
+                                                             iv_bukrs     = p_bukrs
+                                                             iv_gjahr     = p_gjahr
+                                                             ir_monat     = mr_monat ).
+    ENDIF.
+
 
 
 
@@ -918,7 +930,7 @@
 
 
 
-        WHEN 'TR'.
+        WHEN 'TR' OR space. "ülke okunamadıysa yurt dışı sayma
 
 
 
@@ -1091,6 +1103,32 @@
 
 
           CLEAR: ls_k2 , lv_kiril2.
+
+          IF lo_islem_tur IS BOUND.
+            "Ortak kural: vergi kalemi -> gider kalemi -> vergi kodunun tek işlem türü
+            lo_islem_tur->determine( EXPORTING iv_bukrs     = ls_bset-bukrs
+                                               iv_belnr     = ls_bset-belnr
+                                               iv_gjahr     = ls_bset-gjahr
+                                               iv_mwskz     = ls_bset-mwskz
+                                               iv_taxitem   = ls_bset-buzei
+                                     IMPORTING ev_islem_tur = lv_islem_tur
+                                               ev_source    = lv_islem_src ).
+            IF lv_islem_src EQ zcl_tax_vat2_islem_tur=>c_source_not_relevant.
+              "Tevkifat vergi kodu değil: satır kesinti listesine girmez
+              CONTINUE.
+            ENDIF.
+            IF lv_islem_src EQ zcl_tax_vat2_islem_tur=>c_source_unresolved.
+              "Belge düşürülmez; işlem türü boş ve açıklamalı gösterilir
+              ls_k2-acklm = 'İşlem türü belirlenemedi'.
+            ELSE.
+              lv_kiril2 = lv_islem_tur.
+              READ TABLE lt_k2 INTO ls_k2 WITH KEY kiril2 = lv_kiril2 BINARY SEARCH.
+              IF sy-subrc IS NOT INITIAL.
+                CLEAR ls_k2.
+                ls_k2-kiril2 = lv_kiril2.
+              ENDIF.
+            ENDIF.
+          ELSE.
 
 
 
@@ -1372,6 +1410,8 @@
 
           CHECK ls_k2-kiril2 NE '000'.
 
+          ENDIF.
+
 
 
 
@@ -1454,7 +1494,9 @@
 
 
 
-                <fs_kesinti>-islem_tur = ls_ist-k2type.
+                IF lo_islem_tur IS NOT BOUND. "eski kural: vergi kodunun ilk işlem türü
+                  <fs_kesinti>-islem_tur = ls_ist-k2type.
+                ENDIF.
 
 
 
@@ -1548,13 +1590,17 @@
 
           ls_kesinti-kiril2  = ls_k2-kiril2.
 
+          IF lo_islem_tur IS BOUND AND lv_islem_src NE zcl_tax_vat2_islem_tur=>c_source_unresolved.
+            ls_kesinti-islem_tur = lv_islem_tur.
+          ENDIF.
+
 
 
           ls_kesinti-acklm2  = ls_k2-acklm.
 
 
 
-          ls_kesinti-odmtr   = ls_odt-odmtr.
+          ls_kesinti-odmtr   = lv_odmtr. "kod ülkeden belirlenir; ZTAX_T_K2ODT yalnızca açıklama için
 
 
 
@@ -1718,7 +1764,9 @@
 
 
 
-              <fs_kesinti>-islem_tur = ls_ist-k2type.
+              IF lo_islem_tur IS NOT BOUND. "eski kural: vergi kodunun ilk işlem türü
+                <fs_kesinti>-islem_tur = ls_ist-k2type.
+              ENDIF.
 
 
 
